@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "scrape:usga": "npx tsx scripts/scrape-usga.ts",
+    "scrape:bluegolf": "npx tsx scripts/scrape-bluegolf.ts",
+    "scrape": "npm run scrape:usga && npm run scrape:bluegolf"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -14,8 +17,12 @@
     "@mui/icons-material": "^7.3.8",
     "@mui/material": "^7.3.8",
     "next": "16.1.6",
+    "playwright": "^1.58.2",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 import SearchBar from '@/components/SearchBar';
 import SearchFilters from '@/components/SearchFilters';
 import TournamentCard from '@/components/TournamentCard';
-import { mockTournaments } from '@/lib/mockData';
-import { SearchFilters as SearchFiltersType } from '@/types/tournament';
+import { SearchFilters as SearchFiltersType, Tournament } from '@/types/tournament';
 
 const defaultFilters: SearchFiltersType = {
   query: '',
@@ -25,13 +26,28 @@ export default function SearchPageContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') ?? '';
 
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [usingMock, setUsingMock] = useState(false);
+
   const [filters, setFilters] = useState<SearchFiltersType>({
     ...defaultFilters,
     query: initialQuery,
   });
 
+  useEffect(() => {
+    fetch('/api/tournaments')
+      .then((r) => r.json())
+      .then((data) => {
+        setTournaments(data.tournaments ?? []);
+        setUsingMock(data.usingMock ?? false);
+      })
+      .catch(() => setTournaments([]))
+      .finally(() => setLoading(false));
+  }, []);
+
   const results = useMemo(() => {
-    return mockTournaments.filter((t) => {
+    return tournaments.filter((t) => {
       if (filters.query) {
         const q = filters.query.toLowerCase();
         const matches =
@@ -46,10 +62,23 @@ export default function SearchPageContent() {
       if (filters.status && t.status !== filters.status) return false;
       return true;
     });
-  }, [filters]);
+  }, [filters, tournaments]);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
+      {usingMock && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Showing sample data. Run <strong>npm run scrape:usga</strong> to load live tournaments.
+        </Alert>
+      )}
       <Box sx={{ mb: 3 }}>
         <SearchBar initialQuery={initialQuery} size="small" />
       </Box>
