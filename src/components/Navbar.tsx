@@ -5,6 +5,8 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import GolfCourseIcon from '@mui/icons-material/GolfCourse';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import Box from '@mui/material/Box';
 import Link from 'next/link';
 
@@ -27,6 +29,12 @@ export default function Navbar() {
           </Button>
           <Button color="inherit" component={Link} href="/search">
             Search
+          </Button>
+          <Button color="inherit" component={Link} href="/my-tournaments" startIcon={<BookmarkIcon />}>
+            My Tournaments
+          </Button>
+          <Button color="inherit" component={Link} href="/calendar" startIcon={<CalendarMonthIcon />}>
+            Calendar
           </Button>
         </Box>
       </Toolbar>

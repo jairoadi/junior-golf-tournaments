@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation';
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -14,7 +16,7 @@ import GolfCourseIcon from '@mui/icons-material/GolfCourse';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Link from 'next/link';
-import { mockTournaments } from '@/lib/mockData';
+import type { Tournament } from '@/types/tournament';
 
 const statusColor: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
   Open: 'success',
@@ -23,25 +25,44 @@ const statusColor: Record<string, 'success' | 'warning' | 'error' | 'default'> =
   Completed: 'default',
 };
 
-export function generateStaticParams() {
-  return mockTournaments.map((t) => ({ id: t.id }));
+// Parse ISO date strings as local time (not UTC) to avoid off-by-one day errors
+function parseLocalDate(dateStr: string) {
+  return new Date(`${dateStr}T00:00:00`);
+}
+
+function loadAllTournaments(): Tournament[] {
+  const cacheFiles = ['usga.json', 'ujga.json', 'fcg.json'];
+  const all: Tournament[] = [];
+  for (const file of cacheFiles) {
+    const filePath = join(process.cwd(), 'data', file);
+    if (existsSync(filePath)) {
+      try {
+        const cache = JSON.parse(readFileSync(filePath, 'utf-8'));
+        all.push(...(cache.tournaments ?? []));
+      } catch {
+        // malformed cache — skip
+      }
+    }
+  }
+  return all;
 }
 
 export default async function TournamentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const tournament = mockTournaments.find((t) => t.id === id);
+  const tournaments = loadAllTournaments();
+  const tournament = tournaments.find((t) => t.id === id);
 
   if (!tournament) notFound();
 
-  const startDate = new Date(tournament.date).toLocaleDateString('en-US', {
+  const startDate = parseLocalDate(tournament.date).toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
   });
   const endDate = tournament.endDate
-    ? new Date(tournament.endDate).toLocaleDateString('en-US', {
+    ? parseLocalDate(tournament.endDate).toLocaleDateString('en-US', {
         weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
       })
     : null;
-  const deadline = new Date(tournament.registrationDeadline).toLocaleDateString('en-US', {
+  const deadline = parseLocalDate(tournament.registrationDeadline).toLocaleDateString('en-US', {
     month: 'long', day: 'numeric', year: 'numeric',
   });
 

@@ -9,10 +9,13 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
-import SearchBar from '@/components/SearchBar';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import SearchIcon from '@mui/icons-material/Search';
 import SearchFilters from '@/components/SearchFilters';
 import TournamentCard from '@/components/TournamentCard';
 import { SearchFilters as SearchFiltersType, Tournament } from '@/types/tournament';
+import { useBookmarks } from '@/lib/useBookmarks';
 
 const defaultFilters: SearchFiltersType = {
   query: '',
@@ -29,6 +32,8 @@ export default function SearchPageContent() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingMock, setUsingMock] = useState(false);
+
+  const { bookmarks, update } = useBookmarks();
 
   const [filters, setFilters] = useState<SearchFiltersType>({
     ...defaultFilters,
@@ -80,7 +85,24 @@ export default function SearchPageContent() {
         </Alert>
       )}
       <Box sx={{ mb: 3 }}>
-        <SearchBar initialQuery={initialQuery} size="small" />
+        <TextField
+          fullWidth
+          size="small"
+          variant="outlined"
+          placeholder="Search tournaments by name, location, or course…"
+          value={filters.query}
+          onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" color="action" />
+                </InputAdornment>
+              ),
+            },
+          }}
+          sx={{ backgroundColor: 'white', borderRadius: 1 }}
+        />
       </Box>
 
       <Grid container spacing={3}>
@@ -118,7 +140,11 @@ export default function SearchPageContent() {
             <Grid container spacing={2}>
               {results.map((tournament) => (
                 <Grid key={tournament.id} size={{ xs: 12, sm: 6, lg: 4 }}>
-                  <TournamentCard tournament={tournament} />
+                  <TournamentCard
+                    tournament={tournament}
+                    bookmarkEntry={bookmarks[tournament.id] ?? null}
+                    onBookmark={(patch) => update(tournament.id, patch)}
+                  />
                 </Grid>
               ))}
             </Grid>
