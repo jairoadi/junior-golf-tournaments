@@ -27,8 +27,12 @@ const SOURCES = [
     output: 'ujga.json',
     defaultState: 'UT',
   },
-  // FCG can be added later:
-  // { name: 'FCG', url: 'https://fcg.bluegolf.com/bluegolf/fcg25/schedule/index.htm', output: 'fcg.json', defaultState: '' },
+  {
+    name: 'FCG',
+    url: 'https://fcg.bluegolf.com/bluegolf/fcg26/schedule/index.htm',
+    output: 'fcg.json',
+    defaultState: '',
+  },
 ];
 
 // "Apr 2-3" or "Apr 11" → { start: "2026-04-02", end: "2026-04-03" }
@@ -50,15 +54,6 @@ function parseBlueGolfDate(raw: string, year = 2026): { date: string; endDate?: 
   return { date, endDate };
 }
 
-// "Southgate GC · St. George, UT" → { course: "Southgate GC", location: "St. George, UT", state: "UT" }
-function parseLocation(raw: string): { courseName: string; location: string; state: string } {
-  const parts = raw.split('·').map((p) => p.trim());
-  const courseName = parts[0] ?? raw;
-  const location = parts[1] ?? '';
-  const statePart = location.split(',').pop()?.trim() ?? '';
-  const state = statePart.length === 2 ? statePart : '';
-  return { courseName, location, state };
-}
 
 // Infer age group from tournament name
 function inferAgeGroups(name: string): AgeGroup[] {
@@ -157,6 +152,10 @@ async function scrapeBluegolf(source: typeof SOURCES[0]): Promise<Tournament[]> 
   for (let i = 0; i < events.length; i++) {
     const ev = events[i];
     if (!ev.name || !ev.startDateIso) continue;
+
+    // Skip placeholder/TBD events
+    const nameLower = ev.name.toLowerCase();
+    if (nameLower.includes('more events') || nameLower.includes('tour schedule') || ev.courseName === 'To Be Announced') continue;
 
     const date = ev.startDateIso; // already ISO: "2026-04-02"
 

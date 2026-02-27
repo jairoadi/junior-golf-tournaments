@@ -15,7 +15,7 @@ export async function GET() {
   const meta: { source: string; scrapedAt: string; count: number }[] = [];
 
   // Load each scraped source file if it exists
-  const cacheFiles = ['usga.json', 'ujga.json'];
+  const cacheFiles = ['usga.json', 'ujga.json', 'fcg.json'];
 
   for (const file of cacheFiles) {
     const filePath = join(process.cwd(), 'data', file);
